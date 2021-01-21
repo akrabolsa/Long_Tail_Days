@@ -55,3 +55,7 @@ data[['Profit_1d','Profit_2d','Profit_5d','Profit_10d']].describe()
 
 #Total profit after everyone of the days we use:
 print(sum(data['Profit_1d']),sum(data['Profit_2d']),sum(data['Profit_5d']),sum(data['Profit_10d']))
+
+# And the probability of wining after 5 days is:
+P_Win5=(sum(n > 0 for n in data['Profit_5d'])/sum(n != 0 for n in data['Profit_5d']))
+print(P_Win5)
