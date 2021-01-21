@@ -1,0 +1,57 @@
+# data= dataframe with Open, High, Low and Last
+
+#First we calculate the tails: Uptail and Downtail
+import numpy as np
+
+White_day=data["Last"]>data["Open"]
+Black_day=data["Last"]<data["Open"]
+
+data["Uptail"]=np.where(White_day,data.loc[:,"High"]-data.loc[:,"Last"],data.loc[:,"High"]-data.loc[:,"Open"])
+data["Downtail"]=np.where(White_day,data.loc[:,"Open"]-data.loc[:,"Low"],data.loc[:,"Last"]-data.loc[:,"Low"])
+data["Body"]=np.where(White_day,data.loc[:,"Last"]-data.loc[:,"Open"],data.loc[:,"Open"]-data.loc[:,"Last"])
+
+#Tails should be > than Muliplo_body * Body , and also > Multiplo_cola * the other tail
+
+Multiplo_body=2
+Multiplo_cola=3
+
+Condicion_largo=(data["Downtail"] > (Multiplo_body * data["Body"])) & (data["Downtail"] > (Multiplo_cola * data["Uptail"]))
+Condicion_corto=(data["Uptail"] > (Multiplo_body * data["Body"])) & (data["Uptail"] > (Multiplo_cola * data["Downtail"]))
+
+signal_long=[]
+signal_short=[]
+signal_long=np.where(Condicion_largo,1,0)
+signal_short=np.where(Condicion_corto,-1,0)
+signal=np.where(signal_long ==1, signal_long, signal_short)
+
+data["Signal"]=signal
+
+#We calculate the profit 1, 2, 5 and 10 days after the signal
+
+Profit_1ds=np.where(data["Signal"].shift(1)==-1,data['Last'].shift(1)-data['Last'],0)
+Profit_1dl=np.where(data["Signal"].shift(1)==1,data['Last']-data['Last'].shift(1),0)
+Profit_1d=np.where(Profit_1ds ==0, Profit_1dl, Profit_1ds)
+data["Profit_1d"]=Profit_1d
+
+Profit_2ds=np.where(data["Signal"].shift(2)==-1,data['Last'].shift(2)-data['Last'],0)
+Profit_2dl=np.where(data["Signal"].shift(2)==1,data['Last']-data['Last'].shift(2),0)
+Profit_2d=np.where(Profit_2ds ==0, Profit_2dl, Profit_2ds)
+data["Profit_2d"]=Profit_2d
+
+Profit_5ds=np.where(data["Signal"].shift(5)==-1,data['Last'].shift(5)-data['Last'],0)
+Profit_5dl=np.where(data["Signal"].shift(5)==1,data['Last']-data['Last'].shift(5),0)
+Profit_5d=np.where(Profit_5ds ==0, Profit_5dl, Profit_5ds)
+data["Profit_5d"]=Profit_5d
+
+Profit_10ds=np.where(data["Signal"].shift(10)==-1,data['Last'].shift(10)-data['Last'],0)
+Profit_10dl=np.where(data["Signal"].shift(10)==1,data['Last']-data['Last'].shift(10),0)
+Profit_10d=np.where(Profit_10ds ==0, Profit_10dl, Profit_10ds)
+data["Profit_10d"]=Profit_10d
+
+data.tail(10)
+
+
+data[['Profit_1d','Profit_2d','Profit_5d','Profit_10d']].describe()
+
+#Total profit after everyone of the days we use:
+print(sum(data['Profit_1d']),sum(data['Profit_2d']),sum(data['Profit_5d']),sum(data['Profit_10d']))
